@@ -2,9 +2,7 @@ import os
 import logging
 from fastapi import FastAPI, Request
 from telegram import Update, Bot
-from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, ContextTypes
-
 from groq import Groq
 
 # ---------------- Configuration ----------------
@@ -58,24 +56,32 @@ async def telegram_webhook(req: Request):
     update = Update.de_json(data, bot)
 
     user = update.effective_user
+    if not user:
+        return {"ok": True}
     user_id = user.id
     text = update.message.text or ""
 
+    # cooldown
     import time
     now = time.time()
     last = last_request_at.get(user_id, 0)
     if now - last < USER_COOLDOWN_SECONDS:
         remaining = USER_COOLDOWN_SECONDS - (now - last)
-        await bot.send_message(chat_id=user.id, text=f"Slow down a bit 😅 Try again in {int(remaining)+1}s.")
+        await bot.send_message(chat_id=user.id, text=f"Slow down 😅 Try again in {int(remaining)+1}s.")
         return {"ok": True}
     last_request_at[user_id] = now
 
+    # banned words
     lower = text.lower()
     banned_terms = ["suicide", "kill myself", "self harm", "harm others", "nsfw", "sex", "nude"]
     if any(term in lower for term in banned_terms):
-        await bot.send_message(chat_id=user.id, text="Hey, I care about your safety ❤️. If you ever feel low, please reach out to someone you trust or call 14416 (Tele MANAS helpline). You’re not alone.")
+        await bot.send_message(
+            chat_id=user.id,
+            text="Hey, I care about your safety ❤️. If you feel low, please reach out to someone you trust or call 14416 (Tele MANAS helpline). You’re not alone."
+        )
         return {"ok": True}
 
+    # normal chat
     reply = chat_with_manas(text)
     await bot.send_message(chat_id=user.id, text=reply)
     return {"ok": True}

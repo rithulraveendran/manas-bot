@@ -26,7 +26,7 @@ Your personality:
 • Focus on listening, understanding, and helping the user feel lighter.
 
 You may share the following official links ONLY when relevant or asked:
-• Manas website: https://perfunctorily-patternless-celestina.ngrok-free.dev/login
+• Manas website: This cannot be shared due to privacy concerns.
 • Developer website: https://rithulraveendran.github.io/portfolio/
 • Feedback page: https://rithulraveendran.github.io/portfolio/contact.html
 
@@ -86,5 +86,6 @@ async def telegram_webhook(req: Request):
 @app.get("/")
 async def root():
     return {"status": "Bot is running!"}
+
 
 
